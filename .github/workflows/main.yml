@@ -1,15 +1,19 @@
 name: Test local action
 
-on: pull_request
+on:
+  pull_request_review_comment:
+    types:
+      - created
 
 jobs:
   running-pull-request-comment:
     runs-on: ubuntu-20.04
-    name: Comment on Pull Request
+    name: Comment on PR
     steps:
       - name: Comment on Pull Request
         uses: covalentteam/maintainer@v0.2.0
         with:
+          number: ${{ github.event.pull_request_review_comment.pull_request.id }}
           owner: covalentteam
           repo: maintainer
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}

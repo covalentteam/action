@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -18,14 +19,26 @@ func main() {
 	}
 
 	var owner = githubactions.GetInput("owner")
-	if token == "" {
+	if owner == "" {
 		githubactions.Errorf("Missing 'owner' parameter")
 		os.Exit(1)
 	}
 
 	var repo = githubactions.GetInput("repo")
-	if token == "" {
+	if repo == "" {
 		githubactions.Errorf("Missing 'repo' parameter")
+		os.Exit(1)
+	}
+
+	var prID = githubactions.GetInput("number")
+	if prID == "" {
+		githubactions.Errorf("Missing 'pr' parameter")
+		os.Exit(1)
+	}
+
+	pr, err := strconv.Atoi(prID)
+	if err != nil {
+		githubactions.Errorf("Pull Request ID is not valid.")
 		os.Exit(1)
 	}
 
@@ -41,19 +54,19 @@ func main() {
 	oauthC := oauth2.NewClient(ctx, staticToken)
 	client := github.NewClient(oauthC)
 
-	comment := github.RepositoryComment{
+	comment := &github.PullRequestComment{
 		Body:      github.String("pa pa pa pa ...pa ...pooooow"),
 		CreatedAt: &now,
 	}
 
-	_, r, err := client.Repositories.CreateComment(ctx, owner, repo, "", &comment)
+	_, r, err := client.PullRequests.CreateComment(ctx, owner, repo, pr, comment)
 	if err != nil {
-		githubactions.Errorf("Failed to create comment", err.Error())
+		githubactions.Errorf("Failed to create comment: \n", err.Error())
 		os.Exit(1)
 	}
 
 	if r.StatusCode != 201 {
-		githubactions.Errorf("Unexpected status code: ", r.Status)
+		githubactions.Errorf("Unexpected status code: \n", r.Status)
 		os.Exit(1)
 	}
 }

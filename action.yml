@@ -11,6 +11,10 @@ inputs:
   repo:
     description: Repository's name
     required: true
+  number:
+    description: Pull Request number
+    required: true
+
 outputs:
   mantainer:
     description: The name of the maintainer who was congratulated.
