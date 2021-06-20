@@ -32,7 +32,7 @@ func main() {
 
 	var prID = githubactions.GetInput("number")
 	if prID == "" {
-		githubactions.Errorf("Missing 'pr' parameter")
+		githubactions.Errorf("Missing 'number' parameter")
 		os.Exit(1)
 	}
 
