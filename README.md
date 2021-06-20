@@ -4,7 +4,7 @@ This action prints a comment on your PR
 ## Inputs
 - **token**: The personal access token is required
 
-## Example usage
+## Examples
 
 ```yaml
 - name: Running maintain action    
