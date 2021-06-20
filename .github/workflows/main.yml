@@ -11,7 +11,7 @@ jobs:
     name: Comment on PR
     steps:
       - name: Comment on Pull Request
-        uses: covalentteam/maintainer@v0.2.0
+        uses: covalentteam/maintainer@v0.3.0
         with:
           number: ${{ github.event.pull_request_review_comment.pull_request.id }}
           owner: covalentteam
