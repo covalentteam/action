@@ -1,0 +1,15 @@
+name: Test local action
+
+on: pull_request
+
+jobs:
+  running-pull-request-comment:
+    runs-on: ubuntu-20.04
+    name: Comment on Pull Request
+    steps:
+      - name: Comment on Pull Request
+        uses: covalentteam/maintainer@v0.2.0
+        with:
+          owner: covalentteam
+          repo: maintainer
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
