@@ -17,6 +17,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	var owner = githubactions.GetInput("owner")
+	if token == "" {
+		githubactions.Errorf("Missing 'owner' parameter")
+		os.Exit(1)
+	}
+
+	var repo = githubactions.GetInput("repo")
+	if token == "" {
+		githubactions.Errorf("Missing 'repo' parameter")
+		os.Exit(1)
+	}
+
 	var staticToken = oauth2.StaticTokenSource(
 		&oauth2.Token{
 			AccessToken: token,
@@ -34,7 +46,7 @@ func main() {
 		CreatedAt: &now,
 	}
 
-	_, r, err := client.Repositories.CreateComment(ctx, "owner", "repo", "sha", &comment)
+	_, r, err := client.Repositories.CreateComment(ctx, owner, repo, "", &comment)
 	if err != nil {
 		githubactions.Errorf("Failed to create comment", err.Error())
 		os.Exit(1)
