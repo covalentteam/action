@@ -30,36 +30,41 @@ import (
 )
 
 var (
-	failedFromEnvironmentVars   = errors.New("Create command from environment vars.")
-	failedFromGithubActionInput = errors.New("Create command from Github Actions input.")
+	failedFromEnvironmentVars   = errors.New("Create command from environment vars")
+	failedFromGithubActionInput = errors.New("Create command from Github Actions input")
 )
 
 func main() {
 	cmd, err := newPullRequestReviewCommentCommand()
 	if err != nil {
-		githubactions.Errorf("Failed to construct command: \n", err)
+		githubactions.Errorf("Failed to construct command: \n", err.Error())
 		os.Exit(1)
 	}
 
 	if err := create(context.Background(), cmd); err != nil {
-		githubactions.Errorf("Failed to create comment: \n", err)
+		githubactions.Errorf("Failed to create comment: \n", err.Error())
 		os.Exit(1)
 	}
 }
 
 func newPullRequestReviewCommentCommand() (*PullRequestReviewComment, error) {
-	if !*flag.Bool("on-actions", false, "Running action locally") {
-		cmd, err := newPullRequestReviewCommentFromEnvironment()
+	onActions := false
+
+	flag.BoolVar(&onActions, "on-actions", false, "Running action locally")
+	flag.Parse()
+
+	if onActions {
+		cmd, err := newPullRequestReviewCommentFromGithub()
 		if err != nil {
-			return cmd, errors.Wrap(err, failedFromEnvironmentVars.Error())
+			return nil, errors.Wrap(err, failedFromGithubActionInput.Error())
 		}
 
 		return cmd, nil
 	}
 
-	cmd, err := newPullRequestReviewCommentFromGithub()
+	cmd, err := newPullRequestReviewCommentFromEnvironment()
 	if err != nil {
-		return nil, errors.Wrap(err, failedFromGithubActionInput.Error())
+		return cmd, errors.Wrap(err, failedFromEnvironmentVars.Error())
 	}
 
 	return cmd, nil

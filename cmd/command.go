@@ -21,7 +21,6 @@
 package main
 
 import (
-	"encoding/json"
 	"os"
 	"strconv"
 
@@ -31,47 +30,55 @@ import (
 )
 
 var (
-	missingInputGithubToken = errors.New("Missing 'token' input.")
-	missingInputEvent       = errors.New("Missing 'event' input.")
-
-	missingEnvironmentVarGithubToken     = errors.New("Missing 'GITHUB_TOKEN' environment vars.")
-	missingEnvironmentVarPullRequestId   = errors.New("Missing 'PULL_REQUEST_ID' environment vars.")
-	missingEnvironmentVarRepositoryName  = errors.New("Missing 'REPO_NAME' environment vars.")
-	missingEnvironmentVarRepositoryOwner = errors.New("Missing 'REPO_OWNER' environment vars.")
-
-	unprocessableInputEvent    = errors.New("Unprocessable 'event' payload.")
-	unprocessablePullRequestID = errors.New("Unprocessable 'pull_request_id' value.")
+	missingInputGithubToken              = errors.New("Missing 'token' input")
+	missingRepositoryOwnerInput          = errors.New("Missing 'owner' input")
+	missingRepositoryNameInput           = errors.New("Missing 'repository' input")
+	missingPullRequestIdInput            = errors.New("Missing 'pull_request_id' input")
+	missingEnvironmentVarGithubToken     = errors.New("Missing 'GITHUB_TOKEN' environment vars")
+	missingEnvironmentVarPullRequestId   = errors.New("Missing 'PULL_REQUEST_ID' environment vars")
+	missingEnvironmentVarRepositoryName  = errors.New("Missing 'REPO_NAME' environment vars")
+	missingEnvironmentVarRepositoryOwner = errors.New("Missing 'REPO_OWNER' environment vars")
+	unprocessablePullRequestID           = errors.New("Unprocessable 'pull_request_id' value")
 )
 
 type PullRequestReviewComment struct {
 	Owner         *string
 	Repo          *string
-	PullRequestID *int64
+	PullRequestID *int
 	Token         string
 }
 
 func newPullRequestReviewCommentFromGithub() (*PullRequestReviewComment, error) {
-	payload := githubactions.GetInput("event")
-	if payload == "" {
-		return nil, missingInputEvent
+	owner := githubactions.GetInput("owner")
+	if owner == "" {
+		return nil, missingRepositoryOwnerInput
 	}
 
-	githubToken := githubactions.GetInput("github_token")
-	if githubToken == "" {
+	repository := githubactions.GetInput("repository")
+	if repository == "" {
+		return nil, missingRepositoryNameInput
+	}
+
+	token := githubactions.GetInput("token")
+	if token == "" {
 		return nil, missingInputGithubToken
 	}
 
-	event := new(github.PullRequestReviewCommentEvent)
+	prID := githubactions.GetInput("pull_request_id")
+	if prID == "" {
+		return nil, missingPullRequestIdInput
+	}
 
-	if err := json.Unmarshal([]byte(payload), event); err != nil {
-		return nil, errors.Wrap(err, unprocessableInputEvent.Error())
+	pullRequestId, err := strconv.Atoi(prID)
+	if err != nil {
+		return nil, unprocessablePullRequestID
 	}
 
 	reviewComment := &PullRequestReviewComment{
-		Owner:         event.Repo.Owner.Login,
-		Repo:          event.Repo.Name,
-		PullRequestID: event.PullRequest.ID,
-		Token:         githubToken,
+		Owner:         github.String(owner),
+		Repo:          github.String(repository),
+		PullRequestID: github.Int(pullRequestId),
+		Token:         token,
 	}
 
 	return reviewComment, nil
@@ -104,7 +111,7 @@ func newPullRequestReviewCommentFromEnvironment() (*PullRequestReviewComment, er
 	}
 
 	reviewComment := &PullRequestReviewComment{
-		PullRequestID: github.Int64(int64(pullRequestID)),
+		PullRequestID: github.Int(pullRequestID),
 		Owner:         github.String(owner),
 		Repo:          github.String(repo),
 		Token:         githubToken,

@@ -2,16 +2,18 @@ name: mantainer
 description: Congratulate short contribuitions to your repositories.
 
 inputs:
+  owner:
+    description: The name of organization own of this repository.
+    required: true
+  pull_request_id:
+    description: Pull request id.
+    required: true
+  repository:
+    description: The name of this repository.
+    required: true
   token:
     description: Github personal access token.
     required: true
-  event:
-    description: Pull request review comment event payload.
-    required: true
-
-outputs:
-  mantainer:
-    description: The name of the maintainer who was congratulated.
 
 branding:
   color: green

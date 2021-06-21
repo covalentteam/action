@@ -1,4 +1,4 @@
-name: Pipeline auto test
+name: Self testing
 
 on:
   pull_request_review_comment:
@@ -13,5 +13,7 @@ jobs:
       - name: Comment on Pull Request
         uses: covalentteam/maintainer@main
         with:
-          event: ${{ github.event.pull_request_review_comment }}
+          owner: ${{ github.event.repository.owner.login }}
+          pull_request_id: ${{ github.event.repository.id }}
+          repository: ${{ github.event.repository.name }}
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}

@@ -7,11 +7,11 @@ This action prints a comment on your PR
 ## Example usage
 
 ```yaml
-- name: Running maintain action    
-  uses: covalentteam/mantainer@v1
-  with:
-    number: ${{ github.event.pull_request_review_comment.pull_request.id }}
-    owner: covalentteam
-    repo: maintainer
-    token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+- name: Comment on Pull Request
+    uses: covalentteam/maintainer@main
+    with:
+      owner: ${{ github.event.repository.owner.login }}
+      pull_request_id: ${{ github.event.repository.id }}
+      repository: ${{ github.event.repository.name }}
+      token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 ```
