@@ -22,45 +22,43 @@ package main
 
 import (
 	"context"
-	"flag"
-	"os"
+	"net/http"
+	"time"
 
+	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
-	"github.com/sethvargo/go-githubactions"
+	"golang.org/x/oauth2"
 )
 
 var (
-	failedFromEnvironmentVars   = errors.New("Create command from environment vars.")
-	failedFromGithubActionInput = errors.New("Create command from Github Actions input.")
+	failedCreateComment       = errors.New("Failed to create comment on client")
+	failedCommentIsNotCreated = errors.New("Failed to create comment on server")
 )
 
-func main() {
-	cmd, err := newPullRequestReviewCommentCommand()
+func create(ctx context.Context, cmd *PullRequestReviewComment) error {
+	staticToken := oauth2.StaticTokenSource(
+		&oauth2.Token{
+			AccessToken: cmd.Token,
+		},
+	)
+
+	now := time.Now()
+	oauthC := oauth2.NewClient(ctx, staticToken)
+	client := github.NewClient(oauthC)
+
+	comment := &github.PullRequestComment{
+		Body:      github.String("pa pa pa pa ...pa ...pooooow"),
+		CreatedAt: &now,
+	}
+
+	_, r, err := client.PullRequests.CreateComment(ctx, *cmd.Owner, *cmd.Repo, int(*cmd.PullRequestID), comment)
 	if err != nil {
-		githubactions.Errorf("Failed to construct command: \n", err)
-		os.Exit(1)
+		return errors.Wrap(err, failedCreateComment.Error())
 	}
 
-	if err := create(context.Background(), cmd); err != nil {
-		githubactions.Errorf("Failed to create comment: \n", err)
-		os.Exit(1)
-	}
-}
-
-func newPullRequestReviewCommentCommand() (*PullRequestReviewComment, error) {
-	if !*flag.Bool("on-actions", false, "Running action locally") {
-		cmd, err := newPullRequestReviewCommentFromEnvironment()
-		if err != nil {
-			return cmd, errors.Wrap(err, failedFromEnvironmentVars.Error())
-		}
-
-		return cmd, nil
+	if r.StatusCode != http.StatusCreated {
+		return failedCommentIsNotCreated
 	}
 
-	cmd, err := newPullRequestReviewCommentFromGithub()
-	if err != nil {
-		return nil, errors.Wrap(err, failedFromGithubActionInput.Error())
-	}
-
-	return cmd, nil
+	return nil
 }
