@@ -7,7 +7,7 @@ This action prints a comment on your PR
 ## Example usage
 
 ```yaml
-- name: Running maintain action    
+- name: Maintain action    
   uses: covalentteam/mantainer@v1
   with:
     event: ${{ github.event.pull_request_review_comment }}
