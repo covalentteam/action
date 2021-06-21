@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-20.04
     environment:
       name: Marketplace
-      url: ${{ join("https://github.com/marketplace/actions/mantainer?version=", $RELEASE_VERSION) }}
+      url: ${{ format('https://github.com/marketplace/actions/mantainer?version={0}', $RELEASE_VERSION) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
