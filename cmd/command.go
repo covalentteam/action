@@ -25,22 +25,24 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/google/martian/log"
+
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-githubactions"
 )
 
 var (
-	missingInputGithubToken = errors.New("Missing 'token' input.")
-	missingInputEvent       = errors.New("Missing 'event' input.")
+	missingInputGithubToken = errors.New("Missing 'token' input")
+	missingInputEvent       = errors.New("Missing 'event' input")
 
-	missingEnvironmentVarGithubToken     = errors.New("Missing 'GITHUB_TOKEN' environment vars.")
-	missingEnvironmentVarPullRequestId   = errors.New("Missing 'PULL_REQUEST_ID' environment vars.")
-	missingEnvironmentVarRepositoryName  = errors.New("Missing 'REPO_NAME' environment vars.")
-	missingEnvironmentVarRepositoryOwner = errors.New("Missing 'REPO_OWNER' environment vars.")
+	missingEnvironmentVarGithubToken     = errors.New("Missing 'GITHUB_TOKEN' environment vars")
+	missingEnvironmentVarPullRequestId   = errors.New("Missing 'PULL_REQUEST_ID' environment vars")
+	missingEnvironmentVarRepositoryName  = errors.New("Missing 'REPO_NAME' environment vars")
+	missingEnvironmentVarRepositoryOwner = errors.New("Missing 'REPO_OWNER' environment vars")
 
-	unprocessableInputEvent    = errors.New("Unprocessable 'event' payload.")
-	unprocessablePullRequestID = errors.New("Unprocessable 'pull_request_id' value.")
+	unprocessableInputEvent    = errors.New("Unprocessable 'event' payload")
+	unprocessablePullRequestID = errors.New("Unprocessable 'pull_request_id' value")
 )
 
 type PullRequestReviewComment struct {
@@ -56,14 +58,16 @@ func newPullRequestReviewCommentFromGithub() (*PullRequestReviewComment, error) 
 		return nil, missingInputEvent
 	}
 
-	githubToken := githubactions.GetInput("github_token")
+	log.Infof("Payload", payload)
+
+	githubToken := githubactions.GetInput("token")
 	if githubToken == "" {
 		return nil, missingInputGithubToken
 	}
 
-	event := new(github.PullRequestReviewCommentEvent)
+	event := github.PullRequestReviewCommentEvent{}
 
-	if err := json.Unmarshal([]byte(payload), event); err != nil {
+	if err := json.Unmarshal([]byte(payload), &event); err != nil {
 		return nil, errors.Wrap(err, unprocessableInputEvent.Error())
 	}
 

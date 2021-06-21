@@ -10,25 +10,38 @@ env:
   RELEASE_CREATED_AT: ${{ github.event.release.published_at }}
 
 jobs:
-  github-container-registry:
-    name: Github Container Registry
+  display-release-page:
+    name: Display release page
     runs-on: ubuntu-20.04
+    outputs:
+      release-page: ${{ steps.release-page.outputs.url }}
+    steps:
+      - name: Display release url
+        id: release-page
+        run: echo ::set-output name=url::${{ 'https://github.com/marketplace/actions/mantainer?version=$RELEASE_VERSION' }}
+
+  github-container-registry:
+    name: Github container registry
+    runs-on: ubuntu-20.04
+    needs:
+      - display-release-page
     environment:
       name: Marketplace
-      url: ${{ join("https://github.com/marketplace/actions/mantainer?version=", $RELEASE_VERSION) }}
+      url: ${{ needs.display-release-page.outputs.release-page }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: GHCR Authentication
+      - name: Authentication
         run: echo ${{ secrets.ACCESS_TOKEN }} | docker login ghcr.io -u ${{ secrets.ACCESS_USER }} --password-stdin
 
       - name: Building
         run: |
           docker build ./ --file ./Dockerfile \
                           --tag ghcr.io/covalentteam/mantainer:$RELEASE_VERSION \
-                          --build-arg RELEASE_VERSION \
-                          --build-arg RELEASE_CREATED_AT
+                          --tag ghcr.io/covalentteam/mantainer:latest \
+                          --build-arg $RELEASE_VERSION \
+                          --build-arg $RELEASE_CREATED_AT
 
       - name: Publishing release version
-        run: docker push ghcr.io/covalentteam/mantainer:$RELEASE_VERSION
+        run: docker push ghcr.io/covalentteam/mantainer --all-tags
