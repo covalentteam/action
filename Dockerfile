@@ -51,7 +51,7 @@ LABEL "homepage"="http://github.com/covalentteam/maintainer#readme"
 LABEL "maintainer"="vidalvasconcelos@gmail.com"
 LABEL "repository"="http://github.com/covalentteam/maintainer"
 
-LABEL "org.opencontainers.image.authors"="Vidal Vasconcelos <vidalvasconbcelos@gmail.com>"
+LABEL "org.opencontainers.image.authors"="Vidal Vasconcelos <vidalvasconcelos@gmail.com>"
 LABEL "org.opencontainers.image.created"="${RELEASE_CREATED_AT}"
 LABEL "org.opencontainers.image.documentation"="https://github.com/covalentteam/maintainer#readme"
 LABEL "org.opencontainers.image.licenses"="Copyright © 2021 Covalentteam"
@@ -64,7 +64,6 @@ LABEL "com.github.actions.name"="covalentteam/maintainer"
 LABEL "com.github.actions.description"="Comment a simple string on pull request body"
 LABEL "com.github.actions.icon"="user-check"
 LABEL "com.github.actions.color"="green"
-
 
 # Set the binary as the entrypoint of the container
 ENTRYPOINT [ "/bin/maintainer" ]

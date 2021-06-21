@@ -1,4 +1,4 @@
-name: Test local action
+name: Pipeline auto test
 
 on:
   pull_request_review_comment:
@@ -13,7 +13,5 @@ jobs:
       - name: Comment on Pull Request
         uses: covalentteam/maintainer@v0.3.0
         with:
-          number: ${{ github.event.pull_request_review_comment.pull_request.id }}
-          owner: covalentteam
-          repo: maintainer
+          event: ${{ toJson(github.event.pull_request_review_comment) }}
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
