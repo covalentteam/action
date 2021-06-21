@@ -7,7 +7,7 @@ This action prints a comment on your PR
 ## Example usage
 
 ```yaml
-- name: Comment on Pull Request
+  - name: Comment on Pull Request
     uses: covalentteam/maintainer@main
     with:
       owner: ${{ github.event.repository.owner.login }}
