@@ -11,10 +11,10 @@ jobs:
     name: Comment pull request
     steps:
       - name: Retrieve event payload
-        run: echo ::set-output name=payload::${{ toJson(github.event.pull_request_review_comment) }}
+        run: echo ::set-output name=payload::${{ toJson(github.event) }}
         id: event
 
-      - name: Echo payload
+      - name: Retrieve event payload
         run: echo ${{ steps.event.outputs.payload }}
 
       - name: Comment on Pull Request
