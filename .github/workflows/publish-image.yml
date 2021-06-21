@@ -10,8 +10,8 @@ env:
   RELEASE_CREATED_AT: ${{ github.event.release.published_at }}
 
 jobs:
-  display-release-url:
-    name: Display release url
+  display-release-page:
+    name: Display release page
     runs-on: ubuntu-20.04
     outputs:
       release-page: ${{ steps.release-page.outputs.url }}
@@ -21,13 +21,13 @@ jobs:
         run: echo ::set-output name=url::${{ 'https://github.com/marketplace/actions/mantainer?version=$RELEASE_VERSION' }}
 
   github-container-registry:
-    name: Github Container Registry
+    name: Github container registry
     runs-on: ubuntu-20.04
     needs:
-      - display-release-url
+      - display-release-page
     environment:
       name: Marketplace
-      url: ${{ needs.display-release-url.outputs.release-page }}
+      url: ${{ needs.display-release-page.outputs.release-page }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -39,8 +39,9 @@ jobs:
         run: |
           docker build ./ --file ./Dockerfile \
                           --tag ghcr.io/covalentteam/mantainer:$RELEASE_VERSION \
+                          --tag ghcr.io/covalentteam/mantainer:latest \
                           --build-arg RELEASE_VERSION \
                           --build-arg RELEASE_CREATED_AT
 
       - name: Publishing release version
-        run: docker push ghcr.io/covalentteam/mantainer:$RELEASE_VERSION
+        run: docker push ghcr.io/covalentteam/mantainer --all-tags
