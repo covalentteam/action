@@ -10,8 +10,6 @@ This action prints a comment on your PR
 - name: Running maintain action    
   uses: covalentteam/mantainer@v1
   with:
-    number: ${{ github.event.pull_request_review_comment.pull_request.id }}
-    owner: covalentteam
-    repo: maintainer
+    event: ${{ github.event.pull_request_review_comment }}
     token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 ```
