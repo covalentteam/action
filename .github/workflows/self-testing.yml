@@ -1,4 +1,4 @@
-name: Pipeline auto test
+name: Self testing
 
 on:
   pull_request_review_comment:

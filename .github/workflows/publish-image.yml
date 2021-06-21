@@ -10,17 +10,29 @@ env:
   RELEASE_CREATED_AT: ${{ github.event.release.published_at }}
 
 jobs:
+  display-release-url:
+    name: Display release url
+    runs-on: ubuntu-20.04
+    outputs:
+      release-page: ${{ steps.release-page.outputs.url }}
+    steps:
+      - name: Display release url
+        id: release-page
+        run: echo ::set-output name=url::${{ 'https://github.com/marketplace/actions/mantainer?version=$RELEASE_VERSION' }}
+
   github-container-registry:
     name: Github Container Registry
     runs-on: ubuntu-20.04
+    needs:
+      - display-release-url
     environment:
       name: Marketplace
-      url: ${{ join("https://github.com/marketplace/actions/mantainer?version=", $RELEASE_VERSION) }}
+      url: ${{ needs.display-release-url.outputs.release-page }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: GHCR Authentication
+      - name: Authentication
         run: echo ${{ secrets.ACCESS_TOKEN }} | docker login ghcr.io -u ${{ secrets.ACCESS_USER }} --password-stdin
 
       - name: Building
