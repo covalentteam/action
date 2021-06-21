@@ -14,6 +14,6 @@ jobs:
         uses: covalentteam/maintainer@main
         with:
           owner: ${{ github.event.repository.owner.login }}
-          pull_request_id: ${{ github.event.pull_request.id }}
+          pull_request_id: ${{ github.event.pull_request.number }}
           repository: ${{ github.event.repository.name }}
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
