@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-20.04
     name: Comment pull request
     steps:
-      - name: Retrieve event payload
+      - name: Set event payload
         run: echo ::set-output name=payload::${{ toJson(github.event) }}
         id: event
 
