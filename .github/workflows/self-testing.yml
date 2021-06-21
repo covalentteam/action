@@ -10,8 +10,12 @@ jobs:
     runs-on: ubuntu-20.04
     name: Comment pull request
     steps:
+      - name: Retrieve event payload
+        run: echo ::set-output name=payload::${{ toJson(github.event.pull_request_review_comment) }}
+        id: event
+
       - name: Comment on Pull Request
         uses: covalentteam/maintainer@main
         with:
-          event: ${{ github.event.pull_request_review_comment }}
+          event: ${{ steps.event.outputs.payload }}
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
