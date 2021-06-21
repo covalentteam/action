@@ -40,8 +40,8 @@ jobs:
           docker build ./ --file ./Dockerfile \
                           --tag ghcr.io/covalentteam/mantainer:$RELEASE_VERSION \
                           --tag ghcr.io/covalentteam/mantainer:latest \
-                          --build-arg RELEASE_VERSION \
-                          --build-arg RELEASE_CREATED_AT
+                          --build-arg $RELEASE_VERSION \
+                          --build-arg $RELEASE_CREATED_AT
 
       - name: Publishing release version
         run: docker push ghcr.io/covalentteam/mantainer --all-tags

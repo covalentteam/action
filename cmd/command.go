@@ -25,6 +25,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/google/martian/log"
+
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-githubactions"
@@ -56,14 +58,16 @@ func newPullRequestReviewCommentFromGithub() (*PullRequestReviewComment, error) 
 		return nil, missingInputEvent
 	}
 
-	githubToken := githubactions.GetInput("github_token")
+	log.Infof("Payload", payload)
+
+	githubToken := githubactions.GetInput("token")
 	if githubToken == "" {
 		return nil, missingInputGithubToken
 	}
 
-	event := new(github.PullRequestReviewCommentEvent)
+	event := github.PullRequestReviewCommentEvent{}
 
-	if err := json.Unmarshal([]byte(payload), event); err != nil {
+	if err := json.Unmarshal([]byte(payload), &event); err != nil {
 		return nil, errors.Wrap(err, unprocessableInputEvent.Error())
 	}
 
