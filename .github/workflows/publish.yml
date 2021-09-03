@@ -11,8 +11,8 @@ env:
 
 jobs:
   setup:
-    name: Setup release
-    runs-on: ubuntu-20.04
+    name:     Setup release
+    runs-on:  ubuntu-20.04
     outputs:
       date: ${{ steps.datetime.outputs.date }}
       tag:  ${{ steps.semantic.outputs.version_tag }}
@@ -40,17 +40,11 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.semantic.outputs.version_tag }}
 
-      - name: Marketplace release
+      - name: Marketplace release creation
         id:   action
         run:  echo ::set-output name=url::${{ 'https://github.com/covalentteam/template/releases/edit/' }}$RELEASE_VERSION
         env:
           RELEASE_VERSION: ${{ steps.semantic.outputs.version_tag }}
-
-      - name: Semantic version
-        run:  |
-          echo ${{ steps.marketplace.outputs.url }}
-          echo ${{ steps.action.outputs.url }}
-
 
   test:
     name: Test application
@@ -82,9 +76,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Setup
-        uses: docker/setup-buildx-action@v1
 
       - name: Build metadata
         uses: docker/metadata-action@v3
@@ -118,12 +109,25 @@ jobs:
             RELEASE_DESCRIPTION=${{ needs.setup.outputs.tag }}
             RELEASE_URL=${{ needs.setup.outputs.url }}
 
-      - name: Publish release
-        uses: zendesk/action-create-release@v1
+  release:
+    name:     Publish release
+    runs-on:  ubuntu-20.04
+    needs:
+      - setup
+      - publish-version
+    steps:
+      - name: Publish tag
+        uses: mathieudutour/github-tag-action@v5.6
+        id:   tagging
         with:
-          draft:      false
-          prerelease: false
-          tag_name:   ${{ needs.setup.outputs.tag }}
+          github_token: ${{ secrets.ACCESS_TOKEN }}
+          custom_tag:   ${{ needs.setup.outputs.tag }}
+
+      - name: Publish release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-
+        with:
+          release_name: Release ${{ needs.tagging.outputs.tag }}
+          tag_name:     ${{ needs.setup.outputs.tag }}
+          body:         ${{ steps.tagging.outputs.changelog }}
