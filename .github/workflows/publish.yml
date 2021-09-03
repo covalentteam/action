@@ -109,13 +109,6 @@ jobs:
             RELEASE_DESCRIPTION=${{ needs.setup.outputs.tag }}
             RELEASE_URL=${{ needs.setup.outputs.url }}
 
-  release:
-    name:     Publish release
-    runs-on:  ubuntu-20.04
-    needs:
-      - setup
-      - publish-version
-    steps:
       - name: Publish tag
         uses: mathieudutour/github-tag-action@v5.6
         id:   tagging
