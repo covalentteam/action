@@ -10,9 +10,11 @@ import (
 	core "github.com/sethvargo/go-githubactions"
 )
 
-var (
-	failedFromEnvironmentVars   = errors.New("Create command from environment vars")
-	failedFromGithubActionInput = errors.New("Create command from Github Actions input")
+type runsOn int
+
+const (
+	manually runsOn = iota + 1
+	onActions
 )
 
 func main() {
@@ -22,31 +24,36 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := comment.Create(context.Background(), cmd); err != nil {
+	if err := comment.Do(context.Background(), cmd); err != nil {
 		core.Errorf("Failed to create comment: \n %s", err.Error())
 		os.Exit(1)
 	}
 }
 
-func newPullRequestReviewCommentCommand() (*comment.PullRequestReviewComment, error) {
-	var onActions bool
+func newPullRequestReviewCommentCommand() (*comment.Comment, error) {
+	var runsOn runsOn
 
-	flag.BoolVar(&onActions, "on-actions", false, "Running action locally")
+	flag.IntVar((*int)(&runsOn), "runs-on", int(onActions), "Options: [1] manually [2] GitHub Actions")
 	flag.Parse()
 
-	if onActions {
-		cmd, err := comment.NewPullRequestReviewCommentFromGithub()
-		if err != nil {
-			return nil, errors.Wrap(err, failedFromGithubActionInput.Error())
-		}
-
-		return cmd, nil
+	switch runsOn {
+	case manually:
+		return comment.New(
+			comment.WithGithubCommitFromEnvironment,
+			comment.WithGithubTokenFromEnvironment,
+			comment.WithOrganizationNameFromEnvironment,
+			comment.WithPullRequestIDFromEnvironment,
+			comment.WithRepositoryNameFromEnvironment,
+		)
+	case onActions:
+		return comment.New(
+			comment.WithGithubCommitFromInput,
+			comment.WithGithubTokenFromInput,
+			comment.WithOrganizationNameFromInput,
+			comment.WithPullRequestIDFromInput,
+			comment.WithRepositoryNameFromInput,
+		)
+	default:
+		return nil, errors.New("not supported runs-on option: %s")
 	}
-
-	cmd, err := comment.NewPullRequestReviewCommentFromEnvironment()
-	if err != nil {
-		return cmd, errors.Wrap(err, failedFromEnvironmentVars.Error())
-	}
-
-	return cmd, nil
 }
