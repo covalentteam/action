@@ -1,2 +1,4 @@
+.build
 .github
 *.md
+*.yml
