@@ -113,6 +113,7 @@ jobs:
         uses: mathieudutour/github-tag-action@v5.6
         id:   tagging
         with:
+          dry_run:      true
           github_token: ${{ secrets.ACCESS_TOKEN }}
           custom_tag:   ${{ needs.setup.outputs.tag }}
 
@@ -123,4 +124,5 @@ jobs:
         with:
           release_name: Release ${{ needs.tagging.outputs.tag }}
           tag_name:     ${{ needs.setup.outputs.tag }}
+          prerelease:   true
           body:         ${{ steps.tagging.outputs.changelog }}

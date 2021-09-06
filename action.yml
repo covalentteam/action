@@ -1,23 +1,28 @@
-name: github-action-template
-description: A dead simple template to build robust GitHub Actions made with GO.
-author: covalentteam
+name:         github-action-template
+description:  A dead simple template to build robust GitHub Actions made with GO.
+author:       covalentteam
 
 branding:
   icon:   copy
   color:  blue
 
 inputs:
-  owner:
+  token:
     description:  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
     required:     true
-  pull_request_id:
+  commit:
     description:  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
     required:     true
-  repository:
+  pull-request-id:
+    description:  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    required:     true
+  repository-name:
+    description:  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    required:     true
+  organization-name:
     description:  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
     required:     true
 
 runs:
   using: docker
-  image: docker://ghcr.io/covalentteam/template:latest
-  args: [ '-on-actions' ]
+  image: docker://ghcr.io/covalentteam/action:latest

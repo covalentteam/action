@@ -4,112 +4,127 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
 	core "github.com/sethvargo/go-githubactions"
 )
 
 var (
-	missingInputGithubToken              = errors.New("Missing 'token' input")
-	missingRepositoryOwnerInput          = errors.New("Missing 'owner' input")
-	missingRepositoryNameInput           = errors.New("Missing 'repository' input")
-	missingPullRequestIdInput            = errors.New("Missing 'pull_request_id' input")
-	missingEnvironmentVarGithubSha       = errors.New("Missing 'GITHUB_SHA' environment vars")
-	missingEnvironmentVarGithubToken     = errors.New("Missing 'GITHUB_TOKEN' environment vars")
-	missingEnvironmentVarPullRequestId   = errors.New("Missing 'PULL_REQUEST_ID' environment vars")
-	missingEnvironmentVarRepositoryName  = errors.New("Missing 'REPO_NAME' environment vars")
-	missingEnvironmentVarRepositoryOwner = errors.New("Missing 'REPO_OWNER' environment vars")
-	unprocessablePullRequestID           = errors.New("Unprocessable 'pull_request_id' value")
+	missingInputGitHubToken                  = errors.New("missing input 'token'")
+	missingInputGitHubCommit                 = errors.New("missing input 'commit'")
+	missingInputGitHubPullRequestID          = errors.New("missing input 'pull-request-id'")
+	missingInputGitHubRepositoryName         = errors.New("missing input 'repository-name'")
+	missingInputGitHubOrganizationName       = errors.New("missing input 'organization-name'")
+	missingEnvironmentGitHubCommit           = errors.New("missing environment variable 'GITHUB_SHA'")
+	missingEnvironmentGitHubToken            = errors.New("missing environment variable 'GITHUB_TOKEN'")
+	missingEnvironmentGitHubOrganizationName = errors.New("missing environment variable 'ORGANIZATION_NAME'")
+	missingEnvironmentGitHubRepositoryName   = errors.New("missing environment variable 'REPOSITORY_NAME'")
+	missingEnvironmentGitHubPullRequestID    = errors.New("missing environment variable 'PULL_REQUEST_ID'")
+	unprocessablePullRequestID               = errors.New("unprocessable PullRequest id")
 )
 
-type PullRequestReviewComment struct {
-	Owner         *string
-	Repo          *string
-	PullRequestID *int
-	CommitId      string
-	Token         string
+type Comment struct {
+	Ref              string
+	PullRequestID    int
+	Token            string
+	OrganizationName string
+	RepositoryName   string
 }
 
-func NewPullRequestReviewCommentFromGithub() (*PullRequestReviewComment, error) {
-	owner := core.GetInput("owner")
-	if owner == "" {
-		return nil, missingRepositoryOwnerInput
+type Option func(comment *Comment) error
+
+func New(options ...Option) (comment *Comment, err error) {
+	for _, option := range options {
+		if err = option(comment); err != nil {
+			return nil, err
+		}
 	}
 
-	repository := core.GetInput("repository")
-	if repository == "" {
-		return nil, missingRepositoryNameInput
-	}
-
-	token := core.GetInput("token")
-	if token == "" {
-		return nil, missingInputGithubToken
-	}
-
-	prID := core.GetInput("pull_request_id")
-	if prID == "" {
-		return nil, missingPullRequestIdInput
-	}
-
-	pullRequestId, err := strconv.Atoi(prID)
-	if err != nil {
-		return nil, unprocessablePullRequestID
-	}
-
-	commitID, ok := os.LookupEnv("GITHUB_SHA")
-	if !ok {
-		return nil, missingEnvironmentVarGithubSha
-	}
-
-	reviewComment := &PullRequestReviewComment{
-		Owner:         github.String(owner),
-		Repo:          github.String(repository),
-		PullRequestID: github.Int(pullRequestId),
-		CommitId:      commitID,
-		Token:         token,
-	}
-
-	return reviewComment, nil
+	return comment, nil
 }
 
-func NewPullRequestReviewCommentFromEnvironment() (*PullRequestReviewComment, error) {
-	owner, ok := os.LookupEnv("REPOSITORY_OWNER")
-	if !ok {
-		return nil, missingEnvironmentVarRepositoryOwner
+func WithGithubCommitFromInput(comment *Comment) error {
+	if input := core.GetInput("commit"); input != "" {
+		comment.Ref = input
+	}
+	return missingInputGitHubCommit
+}
+
+func WithGithubTokenFromInput(comment *Comment) error {
+	if input := core.GetInput("token"); input != "" {
+		comment.Token = input
+	}
+	return missingInputGitHubToken
+}
+
+func WithOrganizationNameFromInput(comment *Comment) error {
+	if input := core.GetInput("organization-name"); input != "" {
+		comment.OrganizationName = input
+	}
+	return missingInputGitHubOrganizationName
+}
+
+func WithPullRequestIDFromInput(comment *Comment) error {
+	input := core.GetInput("pull-request-id")
+	if input == "" {
+		return missingInputGitHubPullRequestID
 	}
 
-	repo, ok := os.LookupEnv("REPOSITORY_NAME")
-	if !ok {
-		return nil, missingEnvironmentVarRepositoryName
-	}
-
-	githubToken, ok := os.LookupEnv("GITHUB_TOKEN")
-	if !ok {
-		return nil, missingEnvironmentVarGithubToken
-	}
-
-	id, ok := os.LookupEnv("PULL_REQUEST_ID")
-	if !ok {
-		return nil, missingEnvironmentVarPullRequestId
-	}
-
-	pullRequestID, err := strconv.Atoi(id)
+	pullRequestId, err := strconv.Atoi(input)
 	if err != nil {
-		return nil, unprocessablePullRequestID
+		return unprocessablePullRequestID
 	}
 
-	commitID, ok := os.LookupEnv("GITHUB_SHA")
+	comment.PullRequestID = pullRequestId
+	return nil
+}
+
+func WithRepositoryNameFromInput(comment *Comment) error {
+	if input := core.GetInput("repository_name"); input != "" {
+		comment.RepositoryName = input
+	}
+
+	return missingInputGitHubRepositoryName
+}
+
+func WithGithubCommitFromEnvironment(comment *Comment) error {
+	if value, ok := os.LookupEnv("GITHUB_SHA"); ok {
+		comment.Ref = value
+	}
+	return missingEnvironmentGitHubCommit
+}
+
+func WithGithubTokenFromEnvironment(comment *Comment) error {
+	if value, ok := os.LookupEnv("GITHUB_TOKEN"); ok {
+		comment.Token = value
+	}
+	return missingEnvironmentGitHubToken
+}
+
+func WithOrganizationNameFromEnvironment(comment *Comment) error {
+	if value, ok := os.LookupEnv("ORGANIZATION_NAME"); ok {
+		comment.OrganizationName = value
+	}
+	return missingEnvironmentGitHubOrganizationName
+}
+
+func WithPullRequestIDFromEnvironment(comment *Comment) error {
+	value, ok := os.LookupEnv("PULL_REQUEST_ID")
 	if !ok {
-		return nil, missingEnvironmentVarGithubSha
+		return missingEnvironmentGitHubPullRequestID
 	}
 
-	reviewComment := &PullRequestReviewComment{
-		PullRequestID: github.Int(pullRequestID),
-		Owner:         github.String(owner),
-		Repo:          github.String(repo),
-		CommitId:      commitID,
-		Token:         githubToken,
+	number, err := strconv.Atoi(value)
+	if err != nil {
+		return unprocessablePullRequestID
 	}
 
-	return reviewComment, nil
+	comment.PullRequestID = number
+	return nil
+}
+
+func WithRepositoryNameFromEnvironment(comment *Comment) error {
+	if value, ok := os.LookupEnv("REPOSITORY_NAME"); ok {
+		comment.RepositoryName = value
+	}
+	return missingEnvironmentGitHubRepositoryName
 }
