@@ -5,8 +5,12 @@ on:
     branches:
     - main
 
+concurrency:
+  group:              ${{ github.workflow }}
+  cancel-in-progress: true
+
 env:
-  REGISTRY: ghcr.io
+  REGISTRY:   ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
@@ -46,9 +50,26 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.semantic.outputs.version_tag }}
 
-  test:
-    name: Test application
-    runs-on: ubuntu-20.04
+  code-standards:
+    name:     Code standards
+    runs-on:  ubuntu-20.04
+    steps:
+      - name: Setup
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Golangci lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.29
+
+  unit-test:
+    name:     Unit tests
+    runs-on:  ubuntu-20.04
     steps:
       - name: Setup
         uses: actions/setup-go@v2
@@ -66,7 +87,8 @@ jobs:
     runs-on: ubuntu-20.04
     needs:
       - setup
-      - test
+      - unit-test
+      - code-standards
     environment:
       name: Marketplace
       url:  ${{ needs.setup.outputs.edit }}
@@ -109,20 +131,34 @@ jobs:
             RELEASE_DESCRIPTION=${{ needs.setup.outputs.tag }}
             RELEASE_URL=${{ needs.setup.outputs.url }}
 
+  publish-release:
+    name:     Publish release
+    runs-on:  ubuntu-20.04
+    needs:
+      - setup
+      - unit-test
+      - code-standards
+    environment:
+      name: Marketplace
+      url: ${{ needs.setup.outputs.edit }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
       - name: Publish tag
         uses: mathieudutour/github-tag-action@v5.6
-        id:   tagging
+        id: tagging
         with:
-          dry_run:      true
+          dry_run: true
           github_token: ${{ secrets.ACCESS_TOKEN }}
-          custom_tag:   ${{ needs.setup.outputs.tag }}
+          custom_tag: ${{ needs.setup.outputs.tag }}
 
       - name: Publish release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
+          prerelease: true
           release_name: Release ${{ needs.tagging.outputs.tag }}
           tag_name:     ${{ needs.setup.outputs.tag }}
-          prerelease:   true
           body:         ${{ steps.tagging.outputs.changelog }}
