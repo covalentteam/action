@@ -53,6 +53,14 @@ ARG RELEASE_REVISION
 ARG RELEASE_VERSION
 ARG RELEASE_URL
 
+
+# Convert the build arguments in environment variables
+ENV RELEASE_CREATED_AT=$RELEASE_CREATED_AT
+ENV RELEASE_REFERENCE=$RELEASE_REFERENCE
+ENV RELEASE_REVISION=$RELEASE_REVISION
+ENV RELEASE_VERSION=$RELEASE_VERSION
+ENV RELEASE_URL=$RELEASE_URL
+
 # Marketplace labels this section define labels usefull to customize you
 # GitHub Actions Release.
 LABEL com.github.actions.name="covalentteam/template"
