@@ -23,11 +23,11 @@ var (
 )
 
 type Comment struct {
-	Ref              string
-	PullRequestID    int
-	Token            string
-	OrganizationName string
-	RepositoryName   string
+	Organization  string
+	PullRequestID int
+	Ref           string
+	Repository    string
+	Token         string
 }
 
 type Option func(comment *Comment) error
@@ -58,7 +58,7 @@ func WithGithubTokenFromInput(comment *Comment) error {
 
 func WithOrganizationNameFromInput(comment *Comment) error {
 	if input := core.GetInput("organization-name"); input != "" {
-		comment.OrganizationName = input
+		comment.Organization = input
 	}
 	return missingInputGitHubOrganizationName
 }
@@ -80,7 +80,7 @@ func WithPullRequestIDFromInput(comment *Comment) error {
 
 func WithRepositoryNameFromInput(comment *Comment) error {
 	if input := core.GetInput("repository_name"); input != "" {
-		comment.RepositoryName = input
+		comment.Repository = input
 	}
 
 	return missingInputGitHubRepositoryName
@@ -102,7 +102,7 @@ func WithGithubTokenFromEnvironment(comment *Comment) error {
 
 func WithOrganizationNameFromEnvironment(comment *Comment) error {
 	if value, ok := os.LookupEnv("ORGANIZATION_NAME"); ok {
-		comment.OrganizationName = value
+		comment.Organization = value
 	}
 	return missingEnvironmentGitHubOrganizationName
 }
@@ -124,7 +124,7 @@ func WithPullRequestIDFromEnvironment(comment *Comment) error {
 
 func WithRepositoryNameFromEnvironment(comment *Comment) error {
 	if value, ok := os.LookupEnv("REPOSITORY_NAME"); ok {
-		comment.RepositoryName = value
+		comment.Repository = value
 	}
 	return missingEnvironmentGitHubRepositoryName
 }

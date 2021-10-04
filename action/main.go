@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
 
 	"github.com/covalentteam/template/action/comment"
 	"github.com/pkg/errors"
@@ -20,20 +19,20 @@ const (
 func main() {
 	cmd, err := newPullRequestReviewCommentCommand()
 	if err != nil {
-		core.Errorf("Failed to construct command: \n %s", err.Error())
-		os.Exit(1)
+		core.Fatalf("Failed to construct command: \n %s", err.Error())
 	}
 
 	if err := comment.Do(context.Background(), cmd); err != nil {
-		core.Errorf("Failed to create comment: \n %s", err.Error())
-		os.Exit(1)
+		core.Fatalf("Failed to create comment: \n %s", err.Error())
 	}
 }
 
 func newPullRequestReviewCommentCommand() (*comment.Comment, error) {
 	var runsOn runsOn
+	var help bool
 
-	flag.IntVar((*int)(&runsOn), "runs-on", int(onActions), "Options: [1] manually [2] GitHub Actions")
+	flag.IntVar((*int)(&runsOn), "runs-on", int(onActions), "Runs on: \n[1] Manually \n[2] GitHub Actions")
+	flag.BoolVar(&help, "help", help, "Display help command")
 	flag.Parse()
 
 	switch runsOn {

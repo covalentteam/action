@@ -10,31 +10,29 @@ import (
 )
 
 var (
-	failedCreateComment       = errors.New("failed to create comment on client")
-	failedCommentIsNotCreated = errors.New("failed to create comment on server")
+	ErrorCreateComment     = errors.New("failed to create comment on client")
+	ErrorNotCreatedComment = errors.New("failed to create comment on server")
 )
 
 func Do(ctx context.Context, cmd *Comment) error {
-	staticToken := oauth2.StaticTokenSource(
-		&oauth2.Token{
-			AccessToken: cmd.Token,
-		},
-	)
-
-	oauthC := oauth2.NewClient(ctx, staticToken)
-	client := github.NewClient(oauthC)
-
 	comment := &github.IssueComment{
 		Body: github.String("Lorem ipsum dolor sit amet, consectetur adipiscing elit."),
 	}
 
-	_, r, err := client.Issues.CreateComment(ctx, cmd.OrganizationName, cmd.RepositoryName, cmd.PullRequestID, comment)
+	static := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: cmd.Token,
+	})
+
+	hclient := oauth2.NewClient(ctx, static)
+	gclient := github.NewClient(hclient)
+
+	_, r, err := gclient.Issues.CreateComment(ctx, cmd.Organization, cmd.Repository, cmd.PullRequestID, comment)
 	if err != nil {
-		return errors.Wrap(err, failedCreateComment.Error())
+		return errors.Wrap(err, ErrorCreateComment.Error())
 	}
 
 	if r.StatusCode != http.StatusCreated {
-		return failedCommentIsNotCreated
+		return ErrorNotCreatedComment
 	}
 
 	return nil
