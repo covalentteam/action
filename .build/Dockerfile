@@ -36,7 +36,8 @@ RUN go build -a -installsuffix cgo -trimpath -tags netgo -o  /bin/action -mod re
 
 # This steps contains tasks to minimize the artifact size and setup the final
 # layer user.
-RUN echo "nobody:x:65534:65534:Nobody:/:" > /etc_passwd
+RUN cp action.yml /etc/action.yml \
+    && echo "nobody:x:65534:65534:Nobody:/:" > /etc_passwd
 
 # Create the `final` stage with the most basic that we need. Using scratch which
 # will contains only our binary, allowing us to start with a fat build image
